@@ -14,7 +14,9 @@
 		"vitest": "^4.0.14"
 	},
 	"scripts": {
-		"prepare": "husky"
+		"prepare": "husky",
+		"start": "tsc && node dist/server.js",
+		"test": "vitest"
 	},
 	"lint-staged": {
 		"*.{js,ts,json,css,md}": "prettier --write"
