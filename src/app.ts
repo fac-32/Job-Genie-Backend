@@ -1,12 +1,15 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-
+import companyRoutes from './routes/companyRoutes.js';
 const app: Application = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+//route
+app.use('/api/companies', companyRoutes);
 
 // Basic health check route
 app.get('/health', (req: Request, res: Response) => {
