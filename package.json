@@ -1,9 +1,24 @@
 {
-  "dependencies": {
-    "express": "^5.1.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.14"
-  }
+	"dependencies": {
+		"dotenv": "^17.2.3",
+		"express": "^5.1.0"
+	},
+	"devDependencies": {
+		"@types/cors": "^2.8.19",
+		"@types/express": "^5.0.5",
+		"cors": "^2.8.5",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.7",
+		"prettier": "^3.7.3",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.14"
+	},
+	"scripts": {
+		"prepare": "husky",
+		"start": "tsc && node dist/server.js",
+		"test": "vitest"
+	},
+	"lint-staged": {
+		"*.{js,ts,json,css,md}": "prettier --write"
+	}
 }
