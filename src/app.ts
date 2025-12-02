@@ -1,5 +1,7 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import signinRoutes from './routes/routesSignin.js';
+
 import companyRoutes from './routes/companyRoutes.js';
 const app: Application = express();
 
@@ -8,6 +10,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Routes
+app.use('/signin', signinRoutes);
 //route
 app.use('/api/companies', companyRoutes);
 
