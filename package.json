@@ -1,4 +1,5 @@
 {
+	"type": "module",
 	"dependencies": {
 		"dotenv": "^17.2.3",
 		"express": "^5.1.0"
@@ -21,5 +22,23 @@
 	},
 	"lint-staged": {
 		"*.{js,ts,json,css,md}": "prettier --write"
-	}
+	},
+	"name": "job-genie-backend",
+	"version": "1.0.0",
+	"description": "Server-side repo for Job Genie application",
+	"main": "index.js",
+	"directories": {
+		"test": "tests"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fac-32/Job-Genie-Backend.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/fac-32/Job-Genie-Backend/issues"
+	},
+	"homepage": "https://github.com/fac-32/Job-Genie-Backend#readme"
 }
