@@ -1,5 +1,6 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import signinRoutes from './routes/routesSignin.js';
 
 const app: Application = express();
 
@@ -7,6 +8,9 @@ const app: Application = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/signin', signinRoutes);
 
 // Basic health check route
 app.get('/health', (req: Request, res: Response) => {
