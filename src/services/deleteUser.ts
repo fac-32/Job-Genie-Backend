@@ -1,10 +1,11 @@
 import { supabase } from '../config/supabase';
 
-export async function getOrgsByUser(userID: number) {
+export async function deleteUser(username: string) {
     const { data, error } = await supabase
-        .from('User-Wishlist')
-        .select('user_fk, wishlist_fk')
-        .eq('user_fk', userID);
+        .from('Users')
+        .delete()
+        .eq('username', username)
+        .select();
 
     if (error) {
         throw new Error(error.message);
