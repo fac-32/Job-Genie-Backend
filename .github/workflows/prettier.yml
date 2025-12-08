@@ -12,14 +12,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      
+
       - name: Install dependencies
         run: npm install prettier
 
       - name: Run Prettier check
-        run: npx prettier --check "**/*.{js,ts,json,css,md}" 
+        run: npx prettier --check "**/*.{js,ts,json,css,md}"
