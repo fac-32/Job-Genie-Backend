@@ -4,10 +4,10 @@ type updateUserObject = {
     email?: string;
     first_name?: string;
     last_name?: string;
-    phone?: number;
+    phone?: string;
     loc_postcode?: string;
     loc_country?: string;
-    search_radius?: string;
+    search_radius?: number;
 }
 
 export async function updateUser (
