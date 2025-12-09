@@ -23,6 +23,9 @@ export async function addOrg(
 		.select();
 
 	if (error) {
+		if (error.code === '23505') {
+			throw new Error(`Organisation "${name}" in "${city}" already exists`);
+		}
 		throw new Error(error.message);
 	}
 
