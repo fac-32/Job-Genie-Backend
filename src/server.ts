@@ -1,4 +1,5 @@
 import app from './app.js';
+import { Request, Response, NextFunction } from 'express';
 import { config } from './config/environment.js';
 
 const PORT = config.port || 3000;
