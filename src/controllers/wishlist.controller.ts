@@ -113,7 +113,7 @@ export const generateWishlistFromFilters = async (
 	try {
 		const { industry, size, city, country } = req.query;
 
-		console.log('🤖 Generating wishlist with Claude AI...');
+		console.log(' Generating wishlist with Claude AI...');
 		console.log('Filters:', { industry, size, city, country });
 
 		// Call the AI-powered service - now returns a Promise
