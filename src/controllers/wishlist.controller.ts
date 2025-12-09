@@ -19,7 +19,6 @@ export const getAllWishlist = async (req: Request, res: Response) => {
 
 export const addToWishlist = async (req: Request, res: Response) => {
 	const {
-		id,
 		name,
 		industry,
 		size,
@@ -32,7 +31,6 @@ export const addToWishlist = async (req: Request, res: Response) => {
 
 	// Validate required fields
 	if (
-		!id ||
 		!name ||
 		!industry ||
 		!size ||
@@ -48,7 +46,7 @@ export const addToWishlist = async (req: Request, res: Response) => {
 	}
 
 	// Check if company already exists in wishlist
-	if (userWishlist.some((c) => c.id === id)) {
+	if (userWishlist.some((c) => c.name === name)) {
 		return res.status(409).json({
 			success: false,
 			message: 'Company already exists in wishlist',
@@ -59,7 +57,6 @@ export const addToWishlist = async (req: Request, res: Response) => {
 
 	// Add the company to wishlist
 	const newCompany: Company = {
-		id,
 		name,
 		industry,
 		size,
@@ -82,18 +79,18 @@ export const addToWishlist = async (req: Request, res: Response) => {
 };
 
 export const deleteFromWishlist = async (req: Request, res: Response) => {
-	const { id } = req.query;
+	const { name } = req.query;
 
-	if (!id) {
+	if (!name) {
 		return res
 			.status(400)
 			.json({ success: false, message: 'Company ID is required' });
 	}
 
-	const companyToDelete = userWishlist.find((c) => c.id === id);
+	const companyToDelete = userWishlist.find((c) => c.name === name);
 	const prevLength = userWishlist.length;
 
-	userWishlist = userWishlist.filter((c) => c.id !== id);
+	userWishlist = userWishlist.filter((c) => c.name !== name);
 
 	if (userWishlist.length === prevLength) {
 		return res

@@ -12,7 +12,7 @@ interface ClaudeGeneratedCompany {
 	name: string;
 	industry: string;
 	size: '1-50' | '51-200' | '201-500' | '500+';
-	city: string[];
+	city: string;
 	country: string;
 	description: string;
 	logoUrl: string;
@@ -54,7 +54,6 @@ export const generateWishlist = async (
 
 		// Convert to our Company format with IDs and logos
 		const companies: Company[] = generatedCompanies.map((company, index) => ({
-			id: `generated-${Date.now()}-${index}`,
 			name: company.name,
 			industry: company.industry,
 			size: company.size,
