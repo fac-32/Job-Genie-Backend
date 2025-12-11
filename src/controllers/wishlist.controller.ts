@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { generateWishlist } from '../services/wishlistGenerator.service.js';
-import { companies, Company } from '../data/companies.js';
+import { Company } from '../data/companies.js';
 
 // Temporary in-memory wishlist for testing
 let userWishlist: Company[] = [];
@@ -18,47 +18,79 @@ export const getAllWishlist = async (req: Request, res: Response) => {
 };
 
 export const addToWishlist = async (req: Request, res: Response) => {
-	const { id } = req.body;
-	const company = companies.find((c) => c.id === id);
+	const {
+		name,
+		industry,
+		size,
+		city,
+		country,
+		description,
+		logoUrl,
+		websiteUrl,
+	} = req.body;
 
-	if (!company) {
-		return res
-			.status(404)
-			.json({ success: false, message: "couldn't find the company" });
+	// Validate required fields
+	if (
+		!name ||
+		!industry ||
+		!size ||
+		!city ||
+		!country ||
+		!description ||
+		!websiteUrl
+	) {
+		return res.status(400).json({
+			success: false,
+			message: 'Missing required company fields',
+		});
 	}
 
-	if (!userWishlist.some((c) => c.id === id)) {
-		userWishlist.push(company);
-
-		return res.status(200).json({
-			success: true,
-			message: 'company added',
+	// Check if company already exists in wishlist
+	if (userWishlist.some((c) => c.name === name)) {
+		return res.status(409).json({
+			success: false,
+			message: 'Company already exists in wishlist',
 			total: userWishlist.length,
 			companies: userWishlist,
 		});
 	}
 
-	return res.status(409).json({
-		success: false,
-		message: 'company already exists',
+	// Add the company to wishlist
+	const newCompany: Company = {
+		name,
+		industry,
+		size,
+		city,
+		country,
+		description,
+		logoUrl:
+			logoUrl || `https://logo.clearbit.com/${extractDomain(websiteUrl)}`,
+		websiteUrl,
+	};
+
+	userWishlist.push(newCompany);
+
+	return res.status(200).json({
+		success: true,
+		message: 'Company added to wishlist',
 		total: userWishlist.length,
 		companies: userWishlist,
 	});
 };
 
 export const deleteFromWishlist = async (req: Request, res: Response) => {
-	const { id } = req.query;
+	const { name } = req.query;
 
-	if (!id) {
+	if (!name) {
 		return res
 			.status(400)
 			.json({ success: false, message: 'Company ID is required' });
 	}
 
-	const companyToDelete = userWishlist.find((c) => c.id === id);
+	const companyToDelete = userWishlist.find((c) => c.name === name);
 	const prevLength = userWishlist.length;
 
-	userWishlist = userWishlist.filter((c) => c.id !== id);
+	userWishlist = userWishlist.filter((c) => c.name !== name);
 
 	if (userWishlist.length === prevLength) {
 		return res
@@ -79,14 +111,22 @@ export const generateWishlistFromFilters = async (
 	res: Response
 ) => {
 	try {
-		const { industry, size, location } = req.query;
+		const { industry, size, city, country } = req.query;
 
-		const wishlist = generateWishlist({
+		console.log('🤖 Generating wishlist with Claude AI...');
+		console.log('Filters:', { industry, size, city, country });
+
+		// Call the AI-powered service - now returns a Promise
+		const wishlist = await generateWishlist({
 			industry: industry as string,
 			size: size as string,
-			location: location as string,
+			city: city as string,
+			country: country as string,
 		});
 
+		console.log(`✅ Generated ${wishlist.length} companies`);
+
+		// Store the AI-generated wishlist
 		userWishlist = wishlist;
 
 		return res.status(200).json({
@@ -95,7 +135,21 @@ export const generateWishlistFromFilters = async (
 			companies: wishlist,
 		});
 	} catch (error) {
-		console.error('error generating wishlist: ', error);
-		return res.status(500).json({ success: false, message: 'Server error' });
+		console.error('❌ Error generating wishlist:', error);
+		return res.status(500).json({
+			success: false,
+			message: 'Failed to generate wishlist with AI',
+			error: error instanceof Error ? error.message : 'Unknown error',
+		});
 	}
 };
+
+// Helper function to extract domain from URL
+function extractDomain(websiteUrl: string): string {
+	try {
+		const url = new URL(websiteUrl);
+		return url.hostname.replace('www.', '');
+	} catch {
+		return websiteUrl.replace(/https?:\/\/(www\.)?/, '').split('/')[0];
+	}
+}
