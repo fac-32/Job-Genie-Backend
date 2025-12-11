@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 // Import our service
 import { DummyApiService } from '../services/dummyApiService.js';
 // Import our types
-import { CompanyOverviewResponse } from '../types/index.js';
+import { CompanyOverviewResponse, JobDetailsResponse } from '../types/index.js';
 
 // "export class" so we can use this in other files
 export class CompanyController {
@@ -118,6 +118,47 @@ export class CompanyController {
 			res.status(500).json({
 				success: false,
 				error: 'Failed to fetch jobs',
+			});
+		}
+	};
+
+	/**
+	 * Handles GET /api/companies/:companyName/jobs/:jobId
+	 * Get specific job details by ID
+	 */
+	getJobDetails = async (req: Request, res: Response) => {
+		try {
+			const { jobId } = req.params;
+			console.log('📞 Received request for job details:', jobId);
+
+			// Fetch job by ID
+			const job = await this.apiService.getJobById(jobId);
+
+			// Get user's skills (hardcoded for now)
+			const userSkills = ['React', 'TypeScript', 'Node.js', 'JavaScript'];
+
+			// Calculate match score
+			const matchScore = this.apiService.calculateMatchScore(job, userSkills);
+
+			// Prepare response
+			const response: JobDetailsResponse = {
+				success: true,
+				data: {
+					...job,
+					matchScore,
+				},
+			};
+
+			console.log('✉️  Sending job details to frontend');
+			res.status(200).json(response);
+		} catch (error) {
+			console.error('❌ Error in getJobDetails:', error);
+			res.status(500).json({
+				success: false,
+				error:
+					error instanceof Error
+						? error.message
+						: 'Failed to fetch job details',
 			});
 		}
 	};
