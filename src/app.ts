@@ -1,12 +1,23 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import signinRoutes from './routes/routesSignin.js';
 
+import companyRoutes from './routes/CompanyRoutes.js';
+import wishlistRouter from './routes/wishlist.route.js';
 const app: Application = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// API routing
+app.use('/api/wishlist', wishlistRouter);
+
+// Routes
+app.use('/signin', signinRoutes);
+//route
+app.use('/api/companies', companyRoutes);
 
 // Basic health check route
 app.get('/health', (req: Request, res: Response) => {

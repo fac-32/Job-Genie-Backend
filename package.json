@@ -1,5 +1,8 @@
 {
+	"type": "module",
 	"dependencies": {
+		"@anthropic-ai/sdk": "^0.71.2",
+		"@supabase/supabase-js": "^2.86.0",
 		"dotenv": "^17.2.3",
 		"express": "^5.1.0"
 	},
@@ -7,6 +10,7 @@
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.5",
 		"cors": "^2.8.5",
+		"google-auth-library": "^10.5.0",
 		"husky": "^9.1.7",
 		"lint-staged": "^16.2.7",
 		"prettier": "^3.7.3",
@@ -20,5 +24,23 @@
 	},
 	"lint-staged": {
 		"*.{js,ts,json,css,md}": "prettier --write"
-	}
+	},
+	"name": "job-genie-backend",
+	"version": "1.0.0",
+	"description": "Server-side repo for Job Genie application",
+	"main": "index.js",
+	"directories": {
+		"test": "tests"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fac-32/Job-Genie-Backend.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/fac-32/Job-Genie-Backend/issues"
+	},
+	"homepage": "https://github.com/fac-32/Job-Genie-Backend#readme"
 }
