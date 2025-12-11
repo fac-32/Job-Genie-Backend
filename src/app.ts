@@ -1,13 +1,21 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import signinRoutes from './routes/routesSignin.js';
+import cookieParser from 'cookie-parser';
 
+import signinRoutes from './routes/routesSignin.js';
 import companyRoutes from './routes/CompanyRoutes.js';
 import wishlistRouter from './routes/wishlist.route.js';
+
 const app: Application = express();
 
 // Middleware
-app.use(cors());
+app.use(
+	cors({
+		origin: 'http://localhost:5173', // your frontend origin
+		credentials: true, // allow cookies / auth headers
+	})
+);
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -15,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/wishlist', wishlistRouter);
 
 // Routes
-app.use('/signin', signinRoutes);
+app.use('/auth', signinRoutes);
 //route
 app.use('/api/companies', companyRoutes);
 
