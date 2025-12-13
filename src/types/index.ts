@@ -9,6 +9,8 @@ export interface Job {
 	location: string; // Must be a string
 	description: string; // Must be a string
 	requirements: string[]; // Must be an array of strings
+	experienceLevel: string; // Experience level (intern, entry-level, etc.)
+	jobUrl: string; // Direct link to job posting
 	salary?: {
 		// "?" means optional (might not exist)
 		min: number; // If it exists, min is a number
@@ -18,20 +20,29 @@ export interface Job {
 }
 
 // This defines what Company Info looks like
-export interface CompanyInfo {
+export interface Company {
 	name: string;
 	description: string;
 	industry: string;
 	size: string;
 	website: string;
-	logo: string;
+	logo?: string; // Optional logo URL
 }
+
+// Keep alias for backward compatibility
+export type CompanyInfo = Company;
 
 // This defines what we send back to frontend
 export interface CompanyOverviewResponse {
 	success: boolean; // true or false
 	data: {
-		company: CompanyInfo;
+		company: Company;
 		jobs: Job[];
 	};
+}
+
+// Job details response
+export interface JobDetailsResponse {
+	success: boolean;
+	data: Job;
 }

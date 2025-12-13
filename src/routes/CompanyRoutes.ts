@@ -19,5 +19,9 @@ router.get('/:companyName/overview', controller.getCompanyOverview);
 // ROUTE 2: GET /api/companies/:companyName/jobs
 router.get('/:companyName/jobs', controller.getCompanyJobs);
 
+// ROUTE 3: GET /api/companies/:companyName/jobs/:jobId
+// Get specific job details
+router.get('/:companyName/jobs/:jobId', controller.getJobDetails);
+
 // Export so server.ts can use it
 export default router;
