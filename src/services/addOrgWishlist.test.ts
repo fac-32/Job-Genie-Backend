@@ -9,7 +9,8 @@ describe('addOrg', () => {
 			'UK',
 			'Tech',
 			'Definitely do evil',
-			'Large'
+			'Large',
+			'www.google.com/imageishere'
 		);
 
 		expect(result).toBeDefined();
@@ -23,5 +24,6 @@ describe('addOrg', () => {
 		expect(org.industry).toBe('Tech');
 		expect(org.description).toBe('Definitely do evil');
 		expect(org.size).toBe('Large');
+		expect(org.img_url).toBe('www.google.com/imageishere');
 	});
 });
