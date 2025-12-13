@@ -6,13 +6,23 @@ import { supabase } from '../config/supabase';
 // user_id and organisation_id. Supabase accepts objects or an array, so its fine for
 // both one, or multiple relationships being added at a time!
 
+// now also takes a wishlisted or rejected array of strings to indicate wheher an object has been wislisted or rejected
+
+type WishlistStatus = 'wishlisted' | 'rejected';
+
 export async function addRelationshipUserOrg(
 	userID: number,
-	organisationIDs: Array<number>
+	organisationIDs: Array<number>,
+	wishlistedOrRejected: Array<WishlistStatus>
 ) {
-	const relationships = organisationIDs.map((orgID) => ({
+	if (organisationIDs.length !== wishlistedOrRejected.length) {
+		throw new Error('Organisation and wishlist arrays not same length');
+	}
+
+	const relationships = organisationIDs.map((orgID, index) => ({
 		user_fk: userID,
 		wishlist_fk: orgID,
+		wishlisted_rejected: wishlistedOrRejected[index],
 	}));
 
 	const { data, error } = await supabase
