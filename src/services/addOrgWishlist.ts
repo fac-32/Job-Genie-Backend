@@ -6,7 +6,8 @@ export async function addOrg(
 	country: string,
 	industry: string,
 	description: string,
-	size: string
+	size: string,
+	img_url?: string
 ) {
 	const { data, error } = await supabase
 		.from('Wishlist')
@@ -17,10 +18,14 @@ export async function addOrg(
 			industry: industry,
 			description: description,
 			size: size,
+			img_url: img_url,
 		})
 		.select();
 
 	if (error) {
+		if (error.code === '23505') {
+			throw new Error(`Organisation "${name}" in "${city}" already exists`);
+		}
 		throw new Error(error.message);
 	}
 
