@@ -1,5 +1,6 @@
 import { Company } from '../data/companies.js';
 import Anthropic from '@anthropic-ai/sdk';
+import { JobGeneratorService } from './jobGenerator.service.js';
 
 interface FilterInput {
 	industry?: string;
@@ -64,7 +65,22 @@ export const generateWishlist = async (
 			websiteUrl: company.websiteUrl,
 		}));
 
-		return companies;
+		// Generate 5 jobs for each company using AI
+		console.log('🎯 Generating jobs for each company...');
+		const jobGenerator = new JobGeneratorService();
+
+		const companiesWithJobs = await Promise.all(
+			companies.map(async (company) => {
+				console.log(`  📝 Generating 5 jobs for ${company.name}...`);
+				const jobs = await jobGenerator.generateJobsForCompany(company, 5);
+				return { ...company, jobs };
+			})
+		);
+
+		console.log(
+			`✅ Generated jobs for all ${companiesWithJobs.length} companies`
+		);
+		return companiesWithJobs;
 	} catch (error) {
 		console.error('Error generating wishlist with Claude:', error);
 		throw new Error('Failed to generate wishlist');

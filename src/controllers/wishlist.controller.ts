@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { generateWishlist } from '../services/wishlistGenerator.service.js';
 import { Company } from '../data/companies.js';
+import { supabase } from '../config/supabase.js';
 
 // Temporary in-memory wishlist for testing
 let userWishlist: Company[] = [];
@@ -116,7 +117,7 @@ export const generateWishlistFromFilters = async (
 		console.log('🤖 Generating wishlist with Claude AI...');
 		console.log('Filters:', { industry, size, city, country });
 
-		// Call the AI-powered service - now returns a Promise
+		// Call the AI-powered service - now returns companies WITH jobs
 		const wishlist = await generateWishlist({
 			industry: industry as string,
 			size: size as string,
@@ -124,10 +125,48 @@ export const generateWishlistFromFilters = async (
 			country: country as string,
 		});
 
-		console.log(`✅ Generated ${wishlist.length} companies`);
+		console.log(`✅ Generated ${wishlist.length} companies with jobs`);
 
-		// Store the AI-generated wishlist
+		// Store the AI-generated wishlist in memory
 		userWishlist = wishlist;
+
+		// Save companies with jobs to Supabase
+		if (supabase) {
+			console.log('💾 Saving companies to Supabase...');
+
+			for (const company of wishlist) {
+				// Check if company already exists
+				const { data: existing } = await supabase
+					.from('Wishlist')
+					.select('id')
+					.ilike('name', company.name)
+					.single();
+
+				if (!existing) {
+					// Insert new company with jobs
+					const { error } = await supabase.from('Wishlist').insert({
+						name: company.name,
+						industry: company.industry,
+						size: company.size,
+						city: company.city,
+						country: company.country,
+						description: company.description,
+						img_url: company.logoUrl,
+						jobs: company.jobs || [],
+					});
+
+					if (error) {
+						console.error(`❌ Error saving ${company.name}:`, error.message);
+					} else {
+						console.log(
+							`  ✅ Saved ${company.name} with ${company.jobs?.length || 0} jobs`
+						);
+					}
+				} else {
+					console.log(`  ℹ️  ${company.name} already exists in database`);
+				}
+			}
+		}
 
 		return res.status(200).json({
 			success: true,
