@@ -8,11 +8,13 @@ import wishlistRouter from './routes/wishlist.route.js';
 
 const app: Application = express();
 
-// Middleware
+// Middleware - CORS must be first!
 app.use(
 	cors({
 		origin: 'http://localhost:5173', // your frontend origin
 		credentials: true, // allow cookies / auth headers
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
 	})
 );
 app.use(cookieParser());

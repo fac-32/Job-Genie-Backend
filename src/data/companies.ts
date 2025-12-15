@@ -1,3 +1,5 @@
+import { Job } from '../types/index.js';
+
 export interface Company {
 	name: string;
 	industry: string;
@@ -7,4 +9,5 @@ export interface Company {
 	description: string;
 	logoUrl: string;
 	websiteUrl: string;
+	jobs?: Job[]; // Optional: Jobs for this company
 }

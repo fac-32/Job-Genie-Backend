@@ -25,8 +25,13 @@ export interface Company {
 	description: string;
 	industry: string;
 	size: string;
-	website: string;
+	website?: string; // Optional: for backward compatibility
+	websiteUrl?: string; // Optional: alternative field name
 	logo?: string; // Optional logo URL
+	logoUrl?: string; // Optional: alternative field name
+	city?: string; // Optional: company location city
+	country?: string; // Optional: company location country
+	jobs?: Job[]; // Optional: jobs for this company
 }
 
 // Keep alias for backward compatibility
