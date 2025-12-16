@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, expect } from 'vitest';
 import request from 'supertest';
-import app from '../src/server'; // your Express app
+import app from '../src/server';
 import { userWishlist } from '../src/controllers/wishlist.controller';
 
 // Reset the in-memory wishlist before each test
