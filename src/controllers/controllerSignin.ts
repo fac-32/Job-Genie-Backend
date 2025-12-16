@@ -34,7 +34,7 @@ export const googleAuth = async (
 			token: token,
 		});
 
-		if (error || !data.session) {
+		if (error || !data.session || !data.user) {
 			console.error(error);
 			res.status(401).json({
 				ok: false,
@@ -50,12 +50,30 @@ export const googleAuth = async (
 			path: '/',
 		});
 
+		const { data: userRow, error: userError } = await supabase
+			.from('Users')
+			.select('email, username, first_name, last_name, phone')
+			.eq('auth_user_id', data.user.id)
+			.single();
+
+		if (userError || !userRow) {
+			res.status(200).json({
+				success: true,
+				// fallback to payload if profile row not ready yet
+				email: payload.email,
+				given_name: payload.given_name,
+				name: payload.name,
+				phone: 7424863107,
+			});
+			return;
+		}
+
 		res.json({
 			ok: true,
-			email: payload.email,
-			given_name: payload.given_name,
-			name: payload.name,
-			phone: 7424863107,
+			email: userRow.email,
+			given_name: userRow.first_name,
+			name: `${userRow.first_name ?? ''} ${userRow.last_name ?? ''}`.trim(),
+			phone: userRow.phone || 7424863107,
 		});
 	} catch (error) {
 		console.error('Token verification failed:', error);
@@ -113,13 +131,31 @@ export const logIn = async (req: Request, res: Response): Promise<void> => {
 			sameSite: 'lax',
 			path: '/',
 		});
+
+		const { data: userRow, error: userError } = await supabase
+			.from('Users')
+			.select('email, username, first_name, last_name, phone')
+			.eq('auth_user_id', user.id)
+			.single();
+
+		if (userError || !userRow) {
+			res.json({
+				success: true,
+				email: user.email,
+				given_name:
+					user.user_metadata?.given_name || user.user_metadata?.first_name,
+				name: user.user_metadata?.name,
+				phone: user.user_metadata?.phoneNumber,
+			});
+			return;
+		}
+
 		res.json({
 			success: true,
-			email: user.email,
-			given_name:
-				user.user_metadata?.given_name || user.user_metadata?.first_name,
-			name: user.user_metadata?.name,
-			phone: user.user_metadata?.phoneNumber,
+			email: userRow.email,
+			given_name: userRow.first_name,
+			name: `${userRow.first_name ?? ''} ${userRow.last_name ?? ''}`.trim(),
+			phone: userRow.phone,
 		});
 	} catch (error: any) {
 		res.status(400).json({ message: error.message });
@@ -156,6 +192,7 @@ export const authMe = async (req: Request, res: Response): Promise<void> => {
 
 		// Verify token with Supabase
 		const { data, error } = await supabase.auth.getUser(sbToken);
+
 		if (error || !data.user) {
 			res.clearCookie('sb_token', { path: '/' });
 			res.status(401).json({
@@ -165,15 +202,27 @@ export const authMe = async (req: Request, res: Response): Promise<void> => {
 			return;
 		}
 
+		const { data: userRow, error: userError } = await supabase
+			.from('Users')
+			.select('email, username, first_name, last_name, phone')
+			.eq('auth_user_id', data.user.id) // new FK column
+			.single();
+
+		if (userError || !userRow) {
+			res.status(401).json({
+				success: false,
+				error: 'User profile not found',
+			});
+			return;
+		}
+
 		// Return user data matching frontend expectation
 		res.json({
 			success: true,
-			email: data.user.email,
-			given_name:
-				data.user.user_metadata?.given_name ||
-				data.user.user_metadata?.first_name,
-			name: data.user.user_metadata?.name,
-			phone: data.user.user_metadata?.phoneNumber,
+			email: userRow.email,
+			given_name: userRow.first_name,
+			name: `${userRow.first_name ?? ''} ${userRow.last_name ?? ''}`.trim(),
+			phone: userRow.phone,
 		});
 	} catch (error) {
 		console.error('Auth/me error:', error);
