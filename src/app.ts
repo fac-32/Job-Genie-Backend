@@ -9,10 +9,15 @@ import jobRoutes from './routes/jobRoutes.js';
 
 const app: Application = express();
 
+const allowedOrigins = [
+	'http://localhost:5173', // Vite dev
+	'https://job-genie-frontend-i50i.onrender.com', // deployed frontend (Netlify/Vercel/etc)
+];
+
 // Middleware
 app.use(
 	cors({
-		origin: 'http://localhost:5173', // your frontend origin
+		origin: allowedOrigins,
 		credentials: true, // allow cookies / auth headers
 	})
 );
