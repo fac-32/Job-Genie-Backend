@@ -83,7 +83,9 @@ export const googleAuth = async (
 
 export const signUp = async (req: Request, res: Response): Promise<void> => {
 	try {
-		const { email, password, firstName, lastName, phone } = req.body;
+		const { email, password, name, phone } = req.body;
+		const firstName = name.split(' ')[0] || '';
+		const lastName = name.split(' ')[1] || '';
 		const { data, error } = await supabase.auth.signUp({
 			email,
 			password,
