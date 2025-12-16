@@ -3,7 +3,7 @@ import { generateWishlist } from '../services/wishlistGenerator.service.js';
 import { Company } from '../data/companies.js';
 
 // Temporary in-memory wishlist for testing
-let userWishlist: Company[] = [];
+export let userWishlist: Company[] = [];
 
 export const getAllWishlist = async (req: Request, res: Response) => {
 	if (userWishlist.length > 0) {

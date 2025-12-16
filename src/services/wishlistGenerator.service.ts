@@ -72,7 +72,7 @@ export const generateWishlist = async (
 };
 
 function buildPrompt(filters: FilterInput): string {
-	let prompt = `Generate a list of 8-12 realistic companies for a job search wishlist. Return ONLY a valid JSON array with no preamble, explanation, or markdown formatting.
+	let prompt = `Generate a list of 4 realistic companies for a job search wishlist. Return ONLY a valid JSON array with no preamble, explanation, or markdown formatting.
 
 Each company should have this exact structure:
 {

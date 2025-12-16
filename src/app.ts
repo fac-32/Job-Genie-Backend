@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import signinRoutes from './routes/routesSignin.js';
 import companyRoutes from './routes/CompanyRoutes.js';
 import wishlistRouter from './routes/wishlist.route.js';
+import jobRoutes from './routes/jobRoutes.js';
 
 const app: Application = express();
 
@@ -26,6 +27,7 @@ app.use('/api/wishlist', wishlistRouter);
 app.use('/auth', signinRoutes);
 //route
 app.use('/api/companies', companyRoutes);
+app.use('/jobs', jobRoutes);
 
 // Basic health check route
 app.get('/health', (req: Request, res: Response) => {

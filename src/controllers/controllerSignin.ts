@@ -54,6 +54,8 @@ export const googleAuth = async (
 			ok: true,
 			email: payload.email,
 			given_name: payload.given_name,
+			name: payload.name,
+			phone: 7424863107,
 		});
 	} catch (error) {
 		console.error('Token verification failed:', error);
@@ -86,7 +88,10 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
 	}
 };
 
-async function authenticateUser(email: string, password: string) {
+async function authenticateUser(
+	email: string,
+	password: string
+): Promise<{ session: any; user: any }> {
 	const { data, error } = await supabase.auth.signInWithPassword({
 		email,
 		password,
@@ -94,15 +99,28 @@ async function authenticateUser(email: string, password: string) {
 	if (error) {
 		throw new Error(error.message);
 	}
-	return data.user;
+	return { session: data.session, user: data.user };
 }
 
 export const logIn = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const { email, password } = req.body;
-		// Your login logic here
-		const user = await authenticateUser(email, password);
-		res.json({ user });
+		const { session, user } = await authenticateUser(email, password);
+
+		res.cookie('sb_token', session.access_token, {
+			httpOnly: true,
+			secure: false, // true in production
+			sameSite: 'lax',
+			path: '/',
+		});
+		res.json({
+			success: true,
+			email: user.email,
+			given_name:
+				user.user_metadata?.given_name || user.user_metadata?.first_name,
+			name: user.user_metadata?.name,
+			phone: user.user_metadata?.phoneNumber,
+		});
 	} catch (error: any) {
 		res.status(400).json({ message: error.message });
 	}
@@ -120,5 +138,48 @@ export const logOut = async (req: Request, res: Response): Promise<void> => {
 	} catch (error) {
 		console.error('Logout failed:', error);
 		res.status(500).json({ success: false, message: 'Logout failed' });
+	}
+};
+
+export const authMe = async (req: Request, res: Response): Promise<void> => {
+	try {
+		// Get Supabase token from cookie
+		const sbToken = req.cookies['sb_token'];
+
+		if (!sbToken) {
+			res.status(401).json({
+				success: false,
+				error: 'No session token',
+			});
+			return;
+		}
+
+		// Verify token with Supabase
+		const { data, error } = await supabase.auth.getUser(sbToken);
+		if (error || !data.user) {
+			res.clearCookie('sb_token', { path: '/' });
+			res.status(401).json({
+				success: false,
+				error: 'Invalid/expired token',
+			});
+			return;
+		}
+
+		// Return user data matching frontend expectation
+		res.json({
+			success: true,
+			email: data.user.email,
+			given_name:
+				data.user.user_metadata?.given_name ||
+				data.user.user_metadata?.first_name,
+			name: data.user.user_metadata?.name,
+			phone: data.user.user_metadata?.phoneNumber,
+		});
+	} catch (error) {
+		console.error('Auth/me error:', error);
+		res.status(500).json({
+			success: false,
+			error: 'Server error',
+		});
 	}
 };
