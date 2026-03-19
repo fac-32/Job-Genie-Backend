@@ -165,18 +165,34 @@ export const logIn = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const logOut = async (req: Request, res: Response): Promise<void> => {
-	try {
-		const { error } = await supabase.auth.signOut();
-		if (error) {
-			res.status(400).json({ success: false, message: error.message });
-			return;
+	const sbToken = req.cookies['sb_token'];
+
+	if (sbToken) {
+		try {
+			const response = await fetch(
+				`${process.env.SUPABASE_URL}/auth/v1/logout?scope=local`,
+				{
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${sbToken}`,
+						apikey: process.env.SUPABASE_ANON_KEY!,
+					},
+				}
+			);
+
+			// 401 = token already expired/revoked — not an error
+			if (!response.ok && response.status !== 401) {
+				console.error('Supabase logout returned', response.status);
+				// Best-effort: still clear cookie so user is not stuck
+			}
+		} catch (err) {
+			console.error('Logout revocation request failed:', err);
+			// Best-effort: still clear cookie
 		}
-		res.clearCookie('sb_token', { path: '/' });
-		res.json({ success: true, message: 'Logged out successfully' });
-	} catch (error) {
-		console.error('Logout failed:', error);
-		res.status(500).json({ success: false, message: 'Logout failed' });
 	}
+
+	res.clearCookie('sb_token', { path: '/' });
+	res.json({ success: true, message: 'Logged out successfully' });
 };
 
 export const authMe = (req: Request, res: Response): void => {
