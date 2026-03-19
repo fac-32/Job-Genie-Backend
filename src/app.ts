@@ -3,7 +3,6 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
 import signinRoutes from './routes/routesSignin.js';
-import companyRoutes from './routes/CompanyRoutes.js';
 import wishlistRouter from './routes/wishlist.route.js';
 import jobRoutes from './routes/jobRoutes.js';
 import { requireAuth } from './middleware/requireAuth.js';
@@ -25,7 +24,6 @@ app.use(express.urlencoded({ extended: true }));
 // API routing
 app.use('/auth', signinRoutes);
 app.use('/api/wishlist', requireAuth, wishlistRouter);
-app.use('/api/companies', requireAuth, companyRoutes);
 app.use('/jobs', requireAuth, jobRoutes);
 
 // Basic health check route
