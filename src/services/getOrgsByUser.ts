@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { supabase } from '../config/supabase.js';
 
 export async function getOrgsByUser(userID: number) {
 	const { data, error } = await supabase

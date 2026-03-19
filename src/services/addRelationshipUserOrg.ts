@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { supabase } from '../config/supabase.js';
 
 // this function adds one or multiple relationships to the database,
 // accepting a userID and an array of one or more entries which are Org IDs
