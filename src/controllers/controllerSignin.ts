@@ -47,7 +47,7 @@ export const googleAuth = async (
 		res.cookie('sb_token', data.session.access_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'lax',
+			sameSite: 'none',
 			path: '/',
 		});
 
@@ -157,7 +157,7 @@ export const logIn = async (req: Request, res: Response): Promise<void> => {
 		res.cookie('sb_token', session.access_token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'lax',
+			sameSite: 'none',
 			path: '/',
 		});
 
