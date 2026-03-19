@@ -1,4 +1,5 @@
 import { request } from 'undici';
+import { theirStackToken } from '../config/environment.js';
 
 export interface TheirStackJob {
 	id: string;
@@ -39,7 +40,7 @@ export async function fetchTheirStackJobs(
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				Authorization: `Bearer ${process.env.THEIRSTACK_TOKEN}`,
+				Authorization: `Bearer ${theirStackToken}`,
 			},
 			body: JSON.stringify(body),
 		}

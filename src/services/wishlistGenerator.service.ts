@@ -1,5 +1,6 @@
 import { Company } from '../data/companies.js';
 import Anthropic from '@anthropic-ai/sdk';
+import { anthropicApiKey } from '../config/environment.js';
 
 interface FilterInput {
 	industry?: string;
@@ -23,7 +24,7 @@ export const generateWishlist = async (
 	filters: FilterInput
 ): Promise<Company[]> => {
 	const anthropic = new Anthropic({
-		apiKey: process.env.ANTHROPIC_API_KEY,
+		apiKey: anthropicApiKey,
 	});
 
 	// Build the prompt based on filters
