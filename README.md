@@ -65,18 +65,18 @@ npm test
 
 ## API routes
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/auth/signin` | Email/password login |
-| POST | `/auth/signup` | Register new user |
-| POST | `/auth/google` | Google OAuth login |
-| GET | `/auth/me` | Get current user |
-| GET | `/api/wishlist` | Get wishlist |
-| POST | `/api/wishlist/generate` | AI-generate company suggestions |
-| POST | `/api/wishlist/add` | Add companies to wishlist |
-| DELETE | `/api/wishlist/remove` | Remove a company |
-| GET | `/api/companies` | Get company overview with jobs |
-| POST | `/jobs` | Fetch job listings |
+| Method | Path                     | Description                     |
+| ------ | ------------------------ | ------------------------------- |
+| POST   | `/auth/signin`           | Email/password login            |
+| POST   | `/auth/signup`           | Register new user               |
+| POST   | `/auth/google`           | Google OAuth login              |
+| GET    | `/auth/me`               | Get current user                |
+| GET    | `/api/wishlist`          | Get wishlist                    |
+| POST   | `/api/wishlist/generate` | AI-generate company suggestions |
+| POST   | `/api/wishlist/add`      | Add companies to wishlist       |
+| DELETE | `/api/wishlist/remove`   | Remove a company                |
+| GET    | `/api/companies`         | Get company overview with jobs  |
+| POST   | `/jobs`                  | Fetch job listings              |
 
 ## Project structure
 
