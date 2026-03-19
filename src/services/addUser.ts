@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase.js';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 type addUserObject = {
 	auth_user_id: string;
@@ -12,8 +13,11 @@ type addUserObject = {
 	search_radius?: number;
 };
 
-export async function addUser(newUser: addUserObject) {
-	const { data, error } = await supabase.from('Users').insert(newUser).select();
+export async function addUser(
+	newUser: addUserObject,
+	client: SupabaseClient = supabase
+) {
+	const { data, error } = await client.from('Users').insert(newUser).select();
 
 	if (error) {
 		throw new Error(error.message);
