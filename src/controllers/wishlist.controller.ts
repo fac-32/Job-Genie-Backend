@@ -154,12 +154,83 @@ export const deleteFromWishlist = async (req: Request, res: Response) => {
 	}
 };
 
+const ALLOWED_INDUSTRIES = new Set([
+	'',
+	'Artificial Intelligence',
+	'Fintech',
+	'SaaS',
+	'E-commerce',
+	'Gaming',
+	'Cybersecurity',
+	'Cloud Computing',
+	'Biotechnology',
+	'Education Technology',
+	'HealthTech',
+	'IT',
+	'Blockchain',
+	'Internet of Things',
+	'Robotics',
+	'AR/VR',
+	'Quantum Computing',
+	'GreenTech',
+	'Autonomous Vehicles',
+	'3D Printing',
+]);
+
+const ALLOWED_CITIES = new Set([
+	'',
+	'London',
+	'Manchester',
+	'Birmingham',
+	'Edinburgh',
+	'Glasgow',
+	'Bristol',
+	'Leeds',
+	'Liverpool',
+	'Cambridge',
+	'Oxford',
+	'Dublin',
+]);
+
+const ALLOWED_COUNTRIES = new Set(['', 'United Kingdom']);
+
+const ALLOWED_SIZES = new Set(['', '1-50', '51-200', '201-500', '500+']);
+
 export const generateWishlistFromFilters = async (
 	req: Request,
 	res: Response
 ) => {
 	try {
 		const { industry, size, city, country } = req.query;
+
+		const industryVal = (industry as string) ?? '';
+		const sizeVal = (size as string) ?? '';
+		const cityVal = (city as string) ?? '';
+		const countryVal = (country as string) ?? '';
+
+		if (!ALLOWED_INDUSTRIES.has(industryVal)) {
+			return res.status(400).json({
+				success: false,
+				message: `Invalid industry value: "${industryVal}"`,
+			});
+		}
+		if (!ALLOWED_SIZES.has(sizeVal)) {
+			return res
+				.status(400)
+				.json({ success: false, message: `Invalid size value: "${sizeVal}"` });
+		}
+		if (!ALLOWED_CITIES.has(cityVal)) {
+			return res
+				.status(400)
+				.json({ success: false, message: `Invalid city value: "${cityVal}"` });
+		}
+		if (!ALLOWED_COUNTRIES.has(countryVal)) {
+			return res.status(400).json({
+				success: false,
+				message: `Invalid country value: "${countryVal}"`,
+			});
+		}
+
 		const authUuid = (req as any).user.id;
 		const numericId = await getUserNumericId(authUuid);
 
@@ -167,10 +238,10 @@ export const generateWishlistFromFilters = async (
 		console.log('Filters:', { industry, size, city, country });
 
 		const wishlist = await generateWishlist({
-			industry: industry as string,
-			size: size as string,
-			city: city as string,
-			country: country as string,
+			industry: industryVal || undefined,
+			size: sizeVal || undefined,
+			city: cityVal || undefined,
+			country: countryVal || undefined,
 		});
 
 		console.log(`✅ Generated ${wishlist.length} companies`);
