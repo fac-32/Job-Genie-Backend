@@ -1,5 +1,6 @@
 import { OAuth2Client, TokenPayload } from 'google-auth-library';
 import { supabase } from '../config/supabase.js';
+import { addUser } from '../services/addUser.js';
 import dotenv from 'dotenv';
 import { Request, Response } from 'express';
 
@@ -57,6 +58,18 @@ export const googleAuth = async (
 			.single();
 
 		if (userError || !userRow) {
+			try {
+				await addUser({
+					auth_user_id: data.user.id,
+					email: payload.email ?? '',
+					first_name: payload.given_name ?? '',
+					last_name: payload.family_name ?? '',
+					phone: '',
+					username: payload.email ?? '',
+				});
+			} catch (insertErr) {
+				console.warn('addUser failed for Google OAuth user:', insertErr);
+			}
 			res.status(200).json({
 				success: true,
 				// fallback to payload if profile row not ready yet
@@ -100,6 +113,20 @@ export const signUp = async (req: Request, res: Response): Promise<void> => {
 		if (error) {
 			res.status(400).json({ success: false, message: error.message });
 			return;
+		}
+		if (data.user) {
+			try {
+				await addUser({
+					auth_user_id: data.user.id,
+					email,
+					first_name: firstName,
+					last_name: lastName,
+					phone: phone ?? '',
+					username: email,
+				});
+			} catch (insertErr) {
+				console.warn('addUser failed during signup:', insertErr);
+			}
 		}
 		res.json({ success: true, user: data.user, session: data.session });
 	} catch (error) {

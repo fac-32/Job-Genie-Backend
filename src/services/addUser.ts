@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase.js';
 
 type addUserObject = {
+	auth_user_id: string;
 	username: string;
 	email: string;
 	first_name: string;
