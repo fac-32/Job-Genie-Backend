@@ -7,18 +7,14 @@ import companyRoutes from './routes/CompanyRoutes.js';
 import wishlistRouter from './routes/wishlist.route.js';
 import jobRoutes from './routes/jobRoutes.js';
 import { requireAuth } from './middleware/requireAuth.js';
+import { config } from './config/environment.js';
 
 const app: Application = express();
-
-const allowedOrigins = [
-	'http://localhost:5173', // Vite dev
-	'https://job-genie-frontend-i50i.onrender.com', // deployed frontend (Render)
-];
 
 // Middleware
 app.use(
 	cors({
-		origin: allowedOrigins,
+		origin: config.corsOrigin,
 		credentials: true, // allow cookies / auth headers
 	})
 );
