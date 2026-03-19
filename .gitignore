@@ -3,3 +3,7 @@ dist
 .env
 *.log
 .DS_Store
+AGENTS.md
+CLAUDE.md
+.claude/settings.local.json
+

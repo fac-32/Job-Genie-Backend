@@ -45,7 +45,7 @@ export const googleAuth = async (
 
 		res.cookie('sb_token', data.session.access_token, {
 			httpOnly: true,
-			secure: false, // true in production over HTTPS
+			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'lax',
 			path: '/',
 		});
@@ -129,7 +129,7 @@ export const logIn = async (req: Request, res: Response): Promise<void> => {
 
 		res.cookie('sb_token', session.access_token, {
 			httpOnly: true,
-			secure: false, // true in production
+			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'lax',
 			path: '/',
 		});
@@ -179,58 +179,6 @@ export const logOut = async (req: Request, res: Response): Promise<void> => {
 	}
 };
 
-export const authMe = async (req: Request, res: Response): Promise<void> => {
-	try {
-		// Get Supabase token from cookie
-		const sbToken = req.cookies['sb_token'];
-
-		if (!sbToken) {
-			res.status(401).json({
-				success: false,
-				error: 'No session token',
-			});
-			return;
-		}
-
-		// Verify token with Supabase
-		const { data, error } = await supabase.auth.getUser(sbToken);
-
-		if (error || !data.user) {
-			res.clearCookie('sb_token', { path: '/' });
-			res.status(401).json({
-				success: false,
-				error: 'Invalid/expired token',
-			});
-			return;
-		}
-
-		const { data: userRow, error: userError } = await supabase
-			.from('Users')
-			.select('email, username, first_name, last_name, phone')
-			.eq('auth_user_id', data.user.id) // new FK column
-			.single();
-
-		if (userError || !userRow) {
-			res.status(401).json({
-				success: false,
-				error: 'User profile not found',
-			});
-			return;
-		}
-
-		// Return user data matching frontend expectation
-		res.json({
-			success: true,
-			email: userRow.email,
-			given_name: userRow.first_name,
-			name: `${userRow.first_name ?? ''} ${userRow.last_name ?? ''}`.trim(),
-			phone: userRow.phone,
-		});
-	} catch (error) {
-		console.error('Auth/me error:', error);
-		res.status(500).json({
-			success: false,
-			error: 'Server error',
-		});
-	}
+export const authMe = (req: Request, res: Response): void => {
+	res.json({ success: true, ...(req as any).user });
 };

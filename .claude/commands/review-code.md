@@ -1,0 +1,1 @@
+Run a full multi-agent code review on this codebase using the review-code agent. The review-code agent will orchestrate security-reviewer, code-quality-reviewer, test-coverage-reviewer, and architecture-reviewer in parallel, then consolidate all findings into a single ranked report.

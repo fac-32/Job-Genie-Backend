@@ -6,12 +6,13 @@ import signinRoutes from './routes/routesSignin.js';
 import companyRoutes from './routes/CompanyRoutes.js';
 import wishlistRouter from './routes/wishlist.route.js';
 import jobRoutes from './routes/jobRoutes.js';
+import { requireAuth } from './middleware/requireAuth.js';
 
 const app: Application = express();
 
 const allowedOrigins = [
 	'http://localhost:5173', // Vite dev
-	'https://job-genie-frontend-i50i.onrender.com', // deployed frontend (Netlify/Vercel/etc)
+	'https://job-genie-frontend-i50i.onrender.com', // deployed frontend (Render)
 ];
 
 // Middleware
@@ -26,13 +27,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // API routing
-app.use('/api/wishlist', wishlistRouter);
-
-// Routes
 app.use('/auth', signinRoutes);
-//route
-app.use('/api/companies', companyRoutes);
-app.use('/jobs', jobRoutes);
+app.use('/api/wishlist', requireAuth, wishlistRouter);
+app.use('/api/companies', requireAuth, companyRoutes);
+app.use('/jobs', requireAuth, jobRoutes);
 
 // Basic health check route
 app.get('/health', (req: Request, res: Response) => {
