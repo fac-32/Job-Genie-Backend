@@ -63,7 +63,7 @@ export const googleAuth = async (
 				email: payload.email,
 				given_name: payload.given_name,
 				name: payload.name,
-				phone: 7424863107,
+				phone: process.env.TEST_PHONE_NUMBER || null,
 			});
 			return;
 		}
@@ -73,7 +73,7 @@ export const googleAuth = async (
 			email: userRow.email,
 			given_name: userRow.first_name,
 			name: `${userRow.first_name ?? ''} ${userRow.last_name ?? ''}`.trim(),
-			phone: userRow.phone || 7424863107,
+			phone: userRow.phone || process.env.TEST_PHONE_NUMBER || null,
 		});
 	} catch (error) {
 		console.error('Token verification failed:', error);
