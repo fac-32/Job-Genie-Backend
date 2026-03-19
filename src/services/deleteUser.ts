@@ -1,7 +1,11 @@
 import { supabase } from '../config/supabase.js';
+import { SupabaseClient } from '@supabase/supabase-js';
 
-export async function deleteUser(username: string) {
-	const { data, error } = await supabase
+export async function deleteUser(
+	username: string,
+	client: SupabaseClient = supabase
+) {
+	const { data, error } = await client
 		.from('Users')
 		.delete()
 		.eq('username', username)

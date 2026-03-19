@@ -6,5 +6,6 @@ export default defineConfig({
 		globals: true,
 		environment: 'node',
 		setupFiles: [],
+		exclude: ['dist/**', 'node_modules/**'],
 	},
 });
