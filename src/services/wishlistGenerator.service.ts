@@ -16,9 +16,46 @@ interface ClaudeGeneratedCompany {
 	city: string;
 	country: string;
 	description: string;
-	logoUrl: string;
 	websiteUrl: string;
 }
+
+const GENERATE_COMPANIES_TOOL: Anthropic.Tool = {
+	name: 'generate_companies',
+	description: 'Generate a list of companies for a job search wishlist',
+	input_schema: {
+		type: 'object',
+		properties: {
+			generatedCompanies: {
+				type: 'array',
+				items: {
+					type: 'object',
+					properties: {
+						name: { type: 'string' },
+						industry: { type: 'string' },
+						size: {
+							type: 'string',
+							enum: ['1-50', '51-200', '201-500', '500+'],
+						},
+						city: { type: 'string' },
+						country: { type: 'string' },
+						description: { type: 'string' },
+						websiteUrl: { type: 'string' },
+					},
+					required: [
+						'name',
+						'industry',
+						'size',
+						'city',
+						'country',
+						'description',
+						'websiteUrl',
+					],
+				},
+			},
+		},
+		required: ['generatedCompanies'],
+	},
+};
 
 export const generateWishlist = async (
 	filters: FilterInput
@@ -27,34 +64,30 @@ export const generateWishlist = async (
 		apiKey: anthropicApiKey,
 	});
 
-	// Build the prompt based on filters
 	const prompt = buildPrompt(filters);
 
 	try {
 		const message = await anthropic.messages.create({
 			model: 'claude-sonnet-4-20250514',
 			max_tokens: 2000,
-			messages: [
-				{
-					role: 'user',
-					content: prompt,
-				},
-			],
+			tools: [GENERATE_COMPANIES_TOOL],
+			tool_choice: { type: 'tool', name: 'generate_companies' },
+			messages: [{ role: 'user', content: prompt }],
 		});
 
-		// Extract the text content from Claude's response
-		const textContent = message.content.find((block) => block.type === 'text');
-		if (!textContent || textContent.type !== 'text') {
-			throw new Error('No text content in Claude response');
+		const toolUse = message.content.find((block) => block.type === 'tool_use');
+		if (!toolUse || toolUse.type !== 'tool_use') {
+			throw new Error('Claude did not return a tool_use block');
+		}
+		const { generatedCompanies } = toolUse.input as {
+			generatedCompanies: ClaudeGeneratedCompany[];
+		};
+		if (!Array.isArray(generatedCompanies)) {
+			throw new Error('Claude tool response missing generatedCompanies array');
 		}
 
-		// Parse the JSON response from Claude
-		const generatedCompanies: ClaudeGeneratedCompany[] = JSON.parse(
-			textContent.text
-		);
-
 		// Convert to our Company format with IDs and logos
-		const companies: Company[] = generatedCompanies.map((company, index) => ({
+		const companies: Company[] = generatedCompanies.map((company) => ({
 			name: company.name,
 			industry: company.industry,
 			size: company.size,
@@ -73,18 +106,7 @@ export const generateWishlist = async (
 };
 
 function buildPrompt(filters: FilterInput): string {
-	let prompt = `Generate a list of 4 realistic companies for a job search wishlist. Return ONLY a valid JSON array with no preamble, explanation, or markdown formatting.
-
-Each company should have this exact structure:
-{
-  "name": "Company Name",
-  "industry": "Industry Type",
-  "size": "1-50" | "51-200" | "201-500" | "500+",
-  "city": "city name",
-  "country": "country name",
-  "description": "Brief description",
-  "websiteUrl": "link to official company website"
-}
+	let prompt = `Generate a list of 4 realistic companies for a job search wishlist.
 
 Requirements:
 `;
@@ -111,11 +133,8 @@ Requirements:
 		prompt += `- Location: Include a mix of locations, with some remote-friendly companies\n`;
 	}
 
-	prompt += `
-- Include only real companies(e.g., OpenAI, Stripe, Figma)
-- Descriptions should be 1-2 sentences highlighting what makes each company interesting
-
-Return ONLY the JSON array, nothing else.`;
+	prompt += `- Include only real companies (e.g., OpenAI, Stripe, Figma)
+- Descriptions should be 1-2 sentences highlighting what makes each company interesting`;
 
 	return prompt;
 }
