@@ -71,6 +71,14 @@ export const getJobsForWishlist = async (req: Request, res: Response) => {
 					jobTitles,
 					['GB']
 				);
+
+				if (jobs.length > 0) {
+					await supabase
+						.from('Wishlist')
+						.update({ jobs })
+						.ilike('name', company.name);
+				}
+
 				return {
 					company: company.name,
 					jobs,

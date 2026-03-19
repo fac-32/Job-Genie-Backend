@@ -1,3 +1,5 @@
+import { TheirStackJob } from '../services/theirStack.js';
+
 export interface Company {
 	name: string;
 	industry: string;
@@ -7,4 +9,5 @@ export interface Company {
 	description: string;
 	logoUrl: string;
 	websiteUrl: string;
+	jobs?: TheirStackJob[];
 }
