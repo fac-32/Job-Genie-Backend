@@ -31,6 +31,9 @@ vi.mock('../src/config/supabase.js', () => ({
 							single: () => ({ data: null, error: { message: 'not found' } }),
 						}),
 					}),
+					insert: () => ({
+						select: () => ({ data: [{ id: 1 }], error: null }),
+					}),
 				};
 			}
 			return {};
