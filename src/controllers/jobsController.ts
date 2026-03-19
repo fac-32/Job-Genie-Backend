@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { fetchTheirStackJobs, TheirStackJob } from '../services/theirStack.js';
 import { Company } from '../data/companies.js';
-import { userWishlist } from './wishlist.controller.js';
+import { supabase } from '../config/supabase.js';
+import { getOrgsByUser } from '../services/getOrgsByUser.js';
 
 interface JobsByWishlistRequestBody {
 	postedAt: number;
@@ -15,6 +16,29 @@ interface JobsByWishlistResult {
 	jobs: TheirStackJob[];
 }
 
+async function getCompaniesFromDB(authUuid: string): Promise<Company[]> {
+	const { data: userRow, error: userError } = await supabase
+		.from('Users')
+		.select('id')
+		.eq('auth_user_id', authUuid)
+		.single();
+
+	if (userError || !userRow) return [];
+
+	const relationships = await getOrgsByUser(userRow.id as number);
+	if (!relationships || relationships.length === 0) return [];
+
+	const orgIds = relationships.map((r) => r.wishlist_fk);
+	const { data: orgs, error: orgsError } = await supabase
+		.from('Wishlist')
+		.select('*')
+		.in('id', orgIds);
+
+	if (orgsError || !orgs) return [];
+
+	return orgs as Company[];
+}
+
 export const getJobsForWishlist = async (req: Request, res: Response) => {
 	try {
 		const {
@@ -24,9 +48,11 @@ export const getJobsForWishlist = async (req: Request, res: Response) => {
 			remote,
 		} = req.body as JobsByWishlistRequestBody;
 
-		// Use explicit companies if provided, otherwise fall back to in‑memory wishlist
+		// Use explicit companies if provided, otherwise fall back to user's DB wishlist
 		const sourceCompanies: Company[] =
-			companies && companies.length > 0 ? companies : userWishlist;
+			companies && companies.length > 0
+				? companies
+				: await getCompaniesFromDB((req as any).user.id);
 
 		if (!sourceCompanies || sourceCompanies.length === 0) {
 			return res.status(400).json({

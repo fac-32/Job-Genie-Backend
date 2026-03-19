@@ -1,20 +1,59 @@
 import { Request, Response } from 'express';
 import { generateWishlist } from '../services/wishlistGenerator.service.js';
-import { Company } from '../data/companies.js';
+import { supabase } from '../config/supabase.js';
+import { addOrg } from '../services/addOrgWishlist.js';
+import { addRelationshipUserOrg } from '../services/addRelationshipUserOrg.js';
+import { deleteRelationshipUserOrg } from '../services/deleteRelationshipUserOrg.js';
+import { getOrgsByUser } from '../services/getOrgsByUser.js';
 
-// Temporary in-memory wishlist for testing
-export let userWishlist: Company[] = [];
+// Look up the numeric PK for a user by their Supabase auth UUID
+async function getUserNumericId(authUuid: string): Promise<number> {
+	const { data, error } = await supabase
+		.from('Users')
+		.select('id')
+		.eq('auth_user_id', authUuid)
+		.single();
+
+	if (error || !data) {
+		throw new Error('User not found');
+	}
+
+	return data.id as number;
+}
 
 export const getAllWishlist = async (req: Request, res: Response) => {
-	if (userWishlist.length > 0) {
+	try {
+		const authUuid = (req as any).user.id;
+		const numericId = await getUserNumericId(authUuid);
+
+		const relationships = await getOrgsByUser(numericId);
+
+		if (!relationships || relationships.length === 0) {
+			return res
+				.status(200)
+				.json({ success: false, message: 'empty wishlist' });
+		}
+
+		const orgIds = relationships.map((r) => r.wishlist_fk);
+
+		const { data: companies, error } = await supabase
+			.from('Wishlist')
+			.select('*')
+			.in('id', orgIds);
+
+		if (error) throw new Error(error.message);
+
 		return res.status(200).json({
 			success: true,
 			message: 'Success here is your wishlist',
-			companies: userWishlist,
+			companies,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: error instanceof Error ? error.message : 'Unknown error',
 		});
 	}
-
-	return res.status(200).json({ success: false, message: 'empty wishlist' });
 };
 
 export const addToWishlist = async (req: Request, res: Response) => {
@@ -29,7 +68,6 @@ export const addToWishlist = async (req: Request, res: Response) => {
 		websiteUrl,
 	} = req.body;
 
-	// Validate required fields
 	if (
 		!name ||
 		!industry ||
@@ -45,37 +83,36 @@ export const addToWishlist = async (req: Request, res: Response) => {
 		});
 	}
 
-	// Check if company already exists in wishlist
-	if (userWishlist.some((c) => c.name === name)) {
-		return res.status(409).json({
-			success: false,
-			message: 'Company already exists in wishlist',
-			total: userWishlist.length,
-			companies: userWishlist,
+	try {
+		const authUuid = (req as any).user.id;
+		const numericId = await getUserNumericId(authUuid);
+
+		const resolvedLogoUrl =
+			logoUrl || `https://logo.clearbit.com/${extractDomain(websiteUrl)}`;
+
+		const orgData = await addOrg(
+			name,
+			city,
+			country,
+			industry,
+			description,
+			size,
+			resolvedLogoUrl
+		);
+		const orgId = orgData[0].id as number;
+
+		await addRelationshipUserOrg(numericId, [orgId], ['wishlisted']);
+
+		return res.status(200).json({
+			success: true,
+			message: 'Company added to wishlist',
+			company: orgData[0],
 		});
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Unknown error';
+		const status = message.includes('already exists') ? 409 : 500;
+		return res.status(status).json({ success: false, message });
 	}
-
-	// Add the company to wishlist
-	const newCompany: Company = {
-		name,
-		industry,
-		size,
-		city,
-		country,
-		description,
-		logoUrl:
-			logoUrl || `https://logo.clearbit.com/${extractDomain(websiteUrl)}`,
-		websiteUrl,
-	};
-
-	userWishlist.push(newCompany);
-
-	return res.status(200).json({
-		success: true,
-		message: 'Company added to wishlist',
-		total: userWishlist.length,
-		companies: userWishlist,
-	});
 };
 
 export const deleteFromWishlist = async (req: Request, res: Response) => {
@@ -84,26 +121,37 @@ export const deleteFromWishlist = async (req: Request, res: Response) => {
 	if (!name) {
 		return res
 			.status(400)
-			.json({ success: false, message: 'Company ID is required' });
+			.json({ success: false, message: 'Company name is required' });
 	}
 
-	const companyToDelete = userWishlist.find((c) => c.name === name);
-	const prevLength = userWishlist.length;
+	try {
+		const authUuid = (req as any).user.id;
+		const numericId = await getUserNumericId(authUuid);
 
-	userWishlist = userWishlist.filter((c) => c.name !== name);
+		const { data: orgData, error: orgError } = await supabase
+			.from('Wishlist')
+			.select('id')
+			.eq('name', name)
+			.single();
 
-	if (userWishlist.length === prevLength) {
-		return res
-			.status(404)
-			.json({ success: false, message: 'Company not in wishlist' });
+		if (orgError || !orgData) {
+			return res
+				.status(404)
+				.json({ success: false, message: 'Company not in wishlist' });
+		}
+
+		await deleteRelationshipUserOrg(numericId, [orgData.id]);
+
+		return res.status(200).json({
+			success: true,
+			deleted: { name },
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: error instanceof Error ? error.message : 'Unknown error',
+		});
 	}
-
-	return res.status(200).json({
-		success: true,
-		total: userWishlist.length,
-		deleted: companyToDelete,
-		companies: userWishlist,
-	});
 };
 
 export const generateWishlistFromFilters = async (
@@ -112,11 +160,12 @@ export const generateWishlistFromFilters = async (
 ) => {
 	try {
 		const { industry, size, city, country } = req.query;
+		const authUuid = (req as any).user.id;
+		const numericId = await getUserNumericId(authUuid);
 
 		console.log('🤖 Generating wishlist with Claude AI...');
 		console.log('Filters:', { industry, size, city, country });
 
-		// Call the AI-powered service - now returns a Promise
 		const wishlist = await generateWishlist({
 			industry: industry as string,
 			size: size as string,
@@ -126,13 +175,34 @@ export const generateWishlistFromFilters = async (
 
 		console.log(`✅ Generated ${wishlist.length} companies`);
 
-		// Store the AI-generated wishlist
-		userWishlist = wishlist;
+		const savedCompanies = await Promise.all(
+			wishlist.map(async (company) => {
+				try {
+					const orgData = await addOrg(
+						company.name,
+						company.city,
+						company.country,
+						company.industry,
+						company.description,
+						company.size,
+						company.logoUrl
+					);
+					const orgId = orgData[0].id as number;
+					await addRelationshipUserOrg(numericId, [orgId], ['wishlisted']);
+					return orgData[0];
+				} catch {
+					// Skip duplicates — org with same name/city already exists
+					return null;
+				}
+			})
+		);
+
+		const companies = savedCompanies.filter(Boolean);
 
 		return res.status(200).json({
 			success: true,
-			total: wishlist.length,
-			companies: wishlist,
+			total: companies.length,
+			companies,
 		});
 	} catch (error) {
 		console.error('❌ Error generating wishlist:', error);
