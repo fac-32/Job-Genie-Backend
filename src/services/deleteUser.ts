@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase';
+import { supabase } from '../config/supabase.js';
 
 export async function deleteUser(username: string) {
 	const { data, error } = await supabase
